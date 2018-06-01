@@ -1,0 +1,5 @@
+include src/figure_report/*.css
+include src/figure_report/*.js
+include src/figure_report/*.html
+include README.md
+include LICENSE

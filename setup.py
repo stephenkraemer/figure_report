@@ -22,6 +22,7 @@ setup(
     packages = find_packages(where='src',
                              exclude=['docs']),
     package_data = {},
+    include_package_data=True,
     data_files = [],
 
     install_requires=[],
