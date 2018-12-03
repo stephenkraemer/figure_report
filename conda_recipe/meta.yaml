@@ -1,0 +1,17 @@
+package:
+  name: figure_report
+  version: "0.1"
+
+source:
+  path: ../
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+
+test:
+  imports:
+    - figure_report
