@@ -5,7 +5,7 @@ from textwrap import dedent
 from typing import List, Tuple, Optional, Union
 
 DESCRIPTION_STR = 'description'
-FIGURE_STR = 'figure'
+FIGURE_STR = 'figures'
 
 class Report:
     """Multi-page report"""
@@ -114,9 +114,10 @@ class FigureCollection:
                     if curr_key == DESCRIPTION_STR:
                         html_list_ref.append(f'<p>{curr_value}<p>')
                     elif curr_key == FIGURE_STR:
-                        html_list_ref.append(
-                            EmbeddedFigure(fig_id=self.generate_fig_uid(),
-                                           config_dict=curr_value).get_html())
+                        for figure_config_dict in curr_value:
+                            html_list_ref.append(
+                                EmbeddedFigure(fig_id=self.generate_fig_uid(),
+                                               config_dict=figure_config_dict).get_html())
                     else:
                         parse_dict(html_list_ref,
                                    {curr_key: curr_value},

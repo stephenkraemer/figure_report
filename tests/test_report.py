@@ -14,99 +14,103 @@ def test_figure_box_create_html(tmpdir):
             'description': '''This is the first big section.
                                   A lot of text may be added here.
                                   Leading whitespace will be deleted''',
-            'figure': {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
-                       'title': 'Figure title',
-                       'description': 'Some short text'},
+            'figures': [{'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+                         'title': 'Figure title',
+                         'description': 'Some short text'}],
 
             'subsection 11': {
                 'subsection 111': {
-                    'figure': {'path': '/home/stephen/Downloads/garfied.png',
-                               'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
-                }
+                    'figures': [{'path': '/home/stephen/Downloads/garfied.png',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 },
+                                {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+                                 'title': 'A medium length title with some descriptive content',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 }]
                 },
                 'subsection 112': {
-                    'figure': {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
-                               'title': 'A medium length title with some descriptive content',
-                               'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
-                               }
+                    'figures': [{'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+                                 'title': 'A medium length title with some descriptive content',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 }],
                 },
 
             },
 
             's12': {
-                'figure': {'path': 'path/to/figure.png'}
+                'figures': [{'path': 'path/to/figure.png'}]
             },
 
         },
 
         'heading2': {
-            'figure': {'path': 'path/to/figure.png'}
+            'figures': [{'path': 'path/to/figure.png'}]
         },
 
         'heading 3': {
             'description': '''This is the first big section.
                                   A lot of text may be added here.
                                   Leading whitespace will be deleted''',
-            'figure': {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
-                       'title': 'Figure title',
-                       'description': 'Some short text'},
+            'figures': [{'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+                         'title': 'Figure title',
+                         'description': 'Some short text'}],
 
             'subsection 11': {
                 'subsection 1.1.1': {
-                    'figure': {'path': '/home/stephen/Downloads/garfied.png',
-                               'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
-                               }
+                    'figures': [{'path': '/home/stephen/Downloads/garfied.png',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 }]
                 },
                 'subsection 112': {
-                    'figure': {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
-                               'title': 'A medium length title with some descriptive content',
-                               'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
-                               }
+                    'figures': [{'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+                                 'title': 'A medium length title with some descriptive content',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 }]
                 },
 
             },
 
             '12': {
-                'figure': {'path': 'path/to/figure.png'}
+                'figures': [{'path': 'path/to/figure.png'}]
             },
 
         },
 
         'heading4': {
-            'figure': {'path': 'path/to/figure.png'}
+            'figures': [{'path': 'path/to/figure.png'}]
         },
 
         'heading 5': {
             'description': '''This is the first big section.
                                   A lot of text may be added here.
                                   Leading whitespace will be deleted''',
-            'figure': {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+            'figures': [{'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
                        'title': 'Figure title',
-                       'description': 'Some short text'},
+                       'description': 'Some short text'}],
 
             'subsection 11': {
                 'subsection 111': {
-                    'figure': {'path': '/home/stephen/Downloads/garfied.png',
-                               'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
-                               }
+                    'figures': [{'path': '/home/stephen/Downloads/garfied.png',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 }]
                 },
                 'subsection 112': {
-                    'figure': {'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
-                               'title': 'A medium length title with some descriptive content',
-                               'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
-                               }
+                    'figures': [{'path': 'https://raw.githubusercontent.com/vega/vega/master/docs/examples/bar-chart.vg.json',
+                                 'title': 'A medium length title with some descriptive content',
+                                 'description': 'A longish description text which mentions quite a few longer detrails about this nice figure',
+                                 }]
                 },
 
             },
 
             '12': {
-                'figure': {'path': 'path/to/figure.png'}
+                'figures': [{'path': 'path/to/figure.png'}]
             },
 
         },
 
         'heading6': {
-            'figure': {'path': 'path/to/figure.png'}
+            'figures': [{'path': 'path/to/figure.png'}]
         }
 
     }
