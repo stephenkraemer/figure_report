@@ -7,6 +7,8 @@ from typing import List, Tuple, Optional, Union
 DESCRIPTION_STR = 'description'
 FIGURE_STR = 'figures'
 
+print('reloaded')
+
 class Report:
     """Multi-page report"""
     def __init__(self, report_config: dict):
@@ -20,9 +22,15 @@ class Report:
             shutil.copy(curr_file_fp,
                         output_dir / curr_file)
         for page_name, page_config in self.report_config.items():
+            # Pop the ReportPage keyword args BEFORE passing the remaining
+            # config to FigureCollection
+            toc_headings = page_config.pop('toc_headings')
+            autocollapse_depth = page_config.pop('autocollapse_depth')
             page_html = ReportPage(
-                figure_collection_html=(FigureCollection(page_config)
-                                        .generate_html())
+                    figure_collection_html=(FigureCollection(page_config)
+                                            .generate_html()),
+                    toc_headings=toc_headings,
+                    autocollapse_depth=autocollapse_depth,
             ).expand_all_fields()
             output_dir.joinpath(page_name + '.html').write_text(page_html)
 
@@ -44,8 +52,12 @@ class ReportPage:
 
     html = Path(__file__).parent.joinpath('report_page_template.html').read_text()
 
-    def __init__(self, figure_collection_html: Optional[str]=None):
+    def __init__(self, figure_collection_html: Optional[str]=None,
+                 toc_headings='h1, h2, h3', autocollapse_depth=2):
         self.figure_box_html = figure_collection_html
+        self.toc_headings = toc_headings
+        self.autocollapse_depth = autocollapse_depth
+
 
     def expand_all_fields(self) -> str:
         """Expand all template fields
