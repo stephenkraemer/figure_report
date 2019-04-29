@@ -69,8 +69,15 @@ def pattern_to_metadata_table(wildcard_pattern: str, field_constraints: Optional
             # replace following fields with named backreference, if there are any
             regex_pattern = regex_pattern.replace('{' + field_name + '}', f'(?P={field_name})')
 
-    metadata_df = pd.Series(glob_results).str.extract(regex_pattern)
-    metadata_df['path'] = glob_results
+    glob_ser = pd.Series(glob_results)
+    metadata_df = glob_ser.str.extract(regex_pattern)
+    pattern_matched = glob_ser.str.match(regex_pattern)
+    if not pattern_matched.all():
+        if field_constraints:
+            metadata_df = metadata_df.loc[pattern_matched, :]
+        else:
+            raise ValueError('Could not match the regex pattern to all glob results')
+    metadata_df['path'] = glob_ser.loc[pattern_matched]
     metadata_df = metadata_df[['path'] + field_names_in_order_of_appearance]
 
     return metadata_df
