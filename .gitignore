@@ -1,4 +1,13 @@
 .idea/
-.pytest_cache/
+**/*.egg-info/
+**/__pycache__/
+**/.pytest_cache/
+doc/_build
+build
+dist/
+**/.#*
+**/.ipynb_checkpoints
+**/__pycache__
+**/.mypy_cache/
+.vscode/
 build/
-**/*.egg-info

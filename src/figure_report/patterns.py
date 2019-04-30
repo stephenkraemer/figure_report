@@ -115,6 +115,8 @@ def copy_report_files_to_report_dir(metadata_table, root_dir, report_dir):
         output_fp = report_dir + '/' + row_ser.rel_report_dir_path
         Path(output_fp).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(row_ser.path, output_fp)
+        print('also downloading pdf')
+        shutil.copy(row_ser.path.replace('.png', '.pdf'), output_fp.replace('.png', '.pdf'))
 
 
 def convert_metadata_table_to_report_json(metadata_table, section_cols):
