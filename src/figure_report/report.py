@@ -193,7 +193,15 @@ class EmbeddedFigure:
         figure_html = EmbeddedPlotFile(fig_id=self.fig_id,
                                        **self.config_dict).get_html()
         pdf_path = self.config_dict['path'].replace('.png', '.pdf')
-        return f'<div>{figure_html}</div>\n<div><a href="{pdf_path}" download>pdf</a></div>'
+        svg_path = self.config_dict['path'].replace('.png', '.svg')
+        return f'''\
+<div>{figure_html}</div>
+<div>
+<a href="{self.config_dict['path']}" download>png</a>
+<a href="{pdf_path}" download>pdf</a>
+<a href="{svg_path}" download>svg</a>
+</div>
+        '''
 
 class EmbeddedPlotFile:
     """Figure containing a single plot file

@@ -120,6 +120,10 @@ def copy_report_files_to_report_dir(metadata_table, root_dir, report_dir):
 
 
 def convert_metadata_table_to_report_json(metadata_table, section_cols):
+    if 'rel_report_dir_path' in metadata_table:
+        path_column = 'rel_report_dir_path'
+    else:
+        path_column = 'path'
     nested_defaultdict = lambda: defaultdict(nested_defaultdict)
     report_config = nested_defaultdict()
     for unused_idx, row_ser in metadata_table.iterrows():
@@ -127,5 +131,6 @@ def convert_metadata_table_to_report_json(metadata_table, section_cols):
         section_dict = recursive_itemgetter(report_config, section_keys)
         if not 'figures' in section_dict:
             section_dict['figures'] = []
-        section_dict['figures'].append({'path': row_ser.rel_report_dir_path})
+        section_dict['figures'].append({'path': row_ser[path_column]})
     return report_config
+
