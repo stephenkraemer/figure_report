@@ -31,6 +31,7 @@ AnyFigure = Union[mpl.figure.Figure, sns.FacetGrid, pn.ggplot, gg.GGPlot]
 def pdf(s):
     return s.replace(".png", ".pdf")
 
+
 def svg(s):
     return s.replace(".png", ".svg")
 
@@ -145,7 +146,11 @@ class HtmlReport:
 """
 
     def __init__(
-            self, trunk_path, toc_headings="h1, h2, h3, h4", autocollapse_depth=2,
+        self,
+        report_path,
+        files_dir=None,
+        toc_headings="h1, h2, h3, h4",
+        autocollapse_depth=2,
     ):
         """Iteratively build a html document and save or display
 
@@ -166,15 +171,20 @@ class HtmlReport:
         ----------
         toc_headings: eg 'h1, h2'; these headings will be collected into the toc
         autocollapse_depth: the toc will be collapsed to hide headings with a higher level than this, but can be expanded by clicking, or by scrolling into the corresponding document area
-        trunk_path: if defined, will be used to create figures (trunk_path_{count}.png) and the html report (trunk_path.html). Otherwise, a random file will be created
         """
         self.lines = []
         self.toc_headings = toc_headings
         self.autocollapse_depth = autocollapse_depth
-        self.trunk_path = trunk_path
         self.counter = incremental_counter()
         self.heading_counter = incremental_counter()
-        self.html_path = self.trunk_path + '.html'
+        self.report_path = report_path
+        if files_dir is None:
+            files_dir = report_path.replace('.html', '_img')
+        self.files_dir = files_dir
+        # will be combined with counter to create unique paths
+        self.png_base_path = files_dir + "/img.png"
+        Path(report_path).parent.mkdir(exist_ok=True, parents=True)
+        Path(files_dir).mkdir(exist_ok=True, parents=True)
 
     def h1(self, s: str):
         self.lines.append(f"<h1 id={self.heading_counter()}>{s}</h1>\n")
@@ -225,17 +235,30 @@ class HtmlReport:
         """
         if "output" in kwargs or "counter" in kwargs or "trunk_path" in kwargs:
             raise ValueError()
+        if 'png_path' in kwargs:
+            png_path = kwargs.pop('png_path')
+            counter = None
+        else:
+            png_path = self.png_base_path
+            counter = self.counter
         self.lines.append(
-                save_and_display(fig, do_display=do_display, output="html", **kwargs)
+            save_and_display(
+                fig,
+                png_path=png_path,
+                counter=counter,
+                do_display=do_display,
+                output="html",
+                **kwargs,
+            )
         )
 
     def image(self, png_path: str, **kwargs):
         self.lines.append(
-                display_file_html(png_path=png_path, do_display=False, **kwargs)
+            display_file_html(png_path=png_path, do_display=False, **kwargs)
         )
 
     def text(self, s):
-        self.lines.append(s + "<br>")
+        self.lines.append("<br>" + s + "<br>")
 
     @property
     def html_code(self):
@@ -243,21 +266,21 @@ class HtmlReport:
         # when you add new elements, remember to add <div> or <br> where necessary
         html_body = "\n".join(self.lines)
         return self.template.format(
-                html_body=html_body,
-                toc_headings=self.toc_headings,
-                autocollapse_depth=self.autocollapse_depth,
+            html_body=html_body,
+            toc_headings=self.toc_headings,
+            autocollapse_depth=self.autocollapse_depth,
         )
 
     def save(self):
         """Save to file, overwrite existing file"""
 
-        for curr_file in ['tocbot.css', 'viewer.css', 'tocbot.min.js']:
+        for curr_file in ["tocbot.css", "viewer.css", "tocbot.min.js"]:
             curr_file_fp = Path(__file__).parent.joinpath(curr_file)
-            output_dir = Path(self.html_path).parent
+            output_dir = Path(self.report_path).parent
             target_file_path = output_dir / curr_file
             if not target_file_path.exists():
                 shutil.copy(curr_file_fp, target_file_path)
-        Path(self.html_path).write_text(self.html_code)
+        Path(self.report_path).write_text(self.html_code)
 
     def display(self):
         """Display with IPython.display"""
@@ -274,23 +297,23 @@ def incremental_counter(start=0):
 
 
 def save_and_display(
-        fig,
-        png_path=None,
-        trunk_path=None,
-        additional_formats=("pdf", "svg"),
-        output="md",
-        height=None,
-        width=None,
-        display_height=None,
-        display_width=None,
-        name=None,
-        heading_level=None,
-        counter=None,
-        do_display=True,
-        layout="vertical",
-        show_name=True,
-        show_image=True,
-        show_download_links=True,
+    fig,
+    png_path=None,
+    trunk_path=None,
+    additional_formats=("pdf", "svg"),
+    output="md",
+    height=None,
+    width=None,
+    display_height=None,
+    display_width=None,
+    name=None,
+    heading_level=None,
+    counter=None,
+    do_display=True,
+    layout="vertical",
+    show_name=True,
+    show_image=True,
+    show_download_links=True,
 ):
     """
 
@@ -326,6 +349,8 @@ def save_and_display(
 
     plt.close()
 
+    assert png_path is not None or trunk_path is not None
+
     if trunk_path is not None:
         png_path = trunk_path + ".png"
 
@@ -333,7 +358,9 @@ def save_and_display(
     if counter is not None:
         png_path = re.sub("\.png$", f"_{counter()}.png", png_path)
 
-    if isinstance(fig, (mpl.figure.Figure, sns.FacetGrid, sns.matrix.ClusterGrid, sns.PairGrid)):
+    if isinstance(
+        fig, (mpl.figure.Figure, sns.FacetGrid, sns.matrix.ClusterGrid, sns.PairGrid)
+    ):
         fig.savefig(png_path)
         if "pdf" in additional_formats:
             fig.savefig(pdf(png_path))
@@ -351,9 +378,9 @@ def save_and_display(
     elif isinstance(fig, gg.GGPlot):
         # noinspection PyUnresolvedReferences
         size_kwargs = dict(
-                height=height if height else ri.NA_Logical,
-                width=width if width else ri.NA_Logical,
-                units="in",
+            height=height if height else ri.NA_Logical,
+            width=width if width else ri.NA_Logical,
+            units="in",
         )
         fig.save(png_path, **size_kwargs)
         if "pdf" in additional_formats:
@@ -364,10 +391,10 @@ def save_and_display(
 
     if output == "md":
         image_link = server_markdown_link_get_str(
-                png_path,
-                image=True,
-                display_height=display_height,
-                display_width=display_width,
+            png_path,
+            image=True,
+            display_height=display_height,
+            display_width=display_width,
         )
         download_links = [
             server_markdown_link_get_str(png_path),
@@ -409,32 +436,31 @@ def save_and_display(
             return md_text
     elif output == "html":
         return display_file_html(
-                png_path,
-                name,
-                layout,
-                heading_level,
-                show_image,
-                show_download_links,
-                do_display,
-                display_height=display_height,
-                display_width=display_width,
+            png_path,
+            name,
+            layout,
+            heading_level,
+            show_image,
+            show_download_links,
+            do_display,
+            display_height=display_height,
+            display_width=display_width,
         )
     else:
         raise ValueError(f"Unknown output format {output}")
 
 
-
 def display_file_html(
-        png_path,
-        name=None,
-        layout="vertical",
-        heading_level=None,
-        show_image=True,
-        show_download_links=True,
-        do_display=True,
-        display_height=None,
-        display_width=None,
-        units="px",
+    png_path,
+    name=None,
+    layout="vertical",
+    heading_level=None,
+    show_image=True,
+    show_download_links=True,
+    do_display=True,
+    display_height=None,
+    display_width=None,
+    units="px",
 ):
     """
 
@@ -456,11 +482,11 @@ def display_file_html(
 
     """
     image_link = server_html_link_get_str(
-            png_path,
-            image=True,
-            display_width=display_width,
-            display_height=display_height,
-            units=units,
+        png_path,
+        image=True,
+        display_width=display_width,
+        display_height=display_height,
+        units=units,
     )
     download_links = [
         server_html_link_get_str(png_path),
@@ -503,7 +529,7 @@ def display_file_html(
 
 
 def server_markdown_link_get_str(
-        s, image=False, name=None, display_height=None, display_width=None, units="px"
+    s, image=False, name=None, display_height=None, display_width=None, units="px"
 ):
     """Given a filepath, return a markdown image or file link
 
@@ -521,30 +547,30 @@ def server_markdown_link_get_str(
             else:
                 name = "image not found"
         link = s.replace(
-                "/icgc/dkfzlsdf/analysis/hs_ontogeny/",
-                "https://currywurst.dkfz.de/hs-ontogeny/",
+            "/icgc/dkfzlsdf/analysis/hs_ontogeny/",
+            "https://currywurst.dkfz.de/hs-ontogeny/",
         )
         # add a query string to prevent browser caching
         img_link = f"{'!' if image else ''}[{name}]({link}?{time.time()})"
     else:
         img_link = server_html_link_get_str(
-                s=s,
-                image=image,
-                name=name,
-                display_height=display_height,
-                display_width=display_width,
-                units=units,
+            s=s,
+            image=image,
+            name=name,
+            display_height=display_height,
+            display_width=display_width,
+            units=units,
         )
     return img_link
 
 
 def server_html_link_get_str(
-        s: Union[Path, str],
-        image=False,
-        name=None,
-        display_height=None,
-        display_width=None,
-        units="px",
+    s: Union[Path, str],
+    image=False,
+    name=None,
+    display_height=None,
+    display_width=None,
+    units="px",
 ):
     """Given a filepath, return an html <img> or a download link
 
@@ -563,8 +589,8 @@ def server_html_link_get_str(
             name = "image not found"
     # convert filepath to link on http server
     link = s.replace(
-            "/icgc/dkfzlsdf/analysis/hs_ontogeny/",
-            "https://currywurst.dkfz.de/hs-ontogeny/",
+        "/icgc/dkfzlsdf/analysis/hs_ontogeny/",
+        "https://currywurst.dkfz.de/hs-ontogeny/",
     )
     # add a query string to prevent browser caching
     if image:
@@ -590,7 +616,7 @@ def server_html_link_get_str(
         else:
             height_style_str = ""
         img_link = textwrap.dedent(
-                f"""\
+            f"""\
                     <div style="{height_style_str} {width_style_str}"> 
                     <img src="{link}?{time.time()}"
                          alt="{name}"
