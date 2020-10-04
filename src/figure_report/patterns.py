@@ -111,11 +111,11 @@ def copy_report_files_to_report_dir(metadata_table, root_dir, report_dir):
     metadata_table['rel_report_dir_path'] = metadata_table.path.str.replace(
             root_dir + '/', '')
     for unused_idx, row_ser in metadata_table.iterrows():
-        print(row_ser.rel_report_dir_path)
+        # print(row_ser.rel_report_dir_path)
         output_fp = report_dir + '/' + row_ser.rel_report_dir_path
         Path(output_fp).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(row_ser.path, output_fp)
-        print('also downloading pdf')
+        # print('also downloading pdf')
         shutil.copy(row_ser.path.replace('.png', '.pdf'), output_fp.replace('.png', '.pdf'))
 
 
