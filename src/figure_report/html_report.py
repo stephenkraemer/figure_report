@@ -25,6 +25,8 @@ from IPython.display import Markdown, HTML
 import rpy2.robjects.lib.ggplot2 as gg
 import rpy2.rinterface as ri
 
+import mouse_hema_meth.paths as mhpaths
+
 AnyFigure = Union[mpl.figure.Figure, sns.FacetGrid, pn.ggplot, gg.GGPlot]
 
 
@@ -546,10 +548,7 @@ def server_markdown_link_get_str(
                 name = Path(s).suffix[1:]  # discard dot at the beginning of the suffix
             else:
                 name = "image not found"
-        link = s.replace(
-            "/icgc/dkfzlsdf/analysis/hs_ontogeny/",
-            "https://currywurst.dkfz.de/hs-ontogeny/",
-        )
+        link = mhpaths.get_currywurst_link(s)
         # add a query string to prevent browser caching
         img_link = f"{'!' if image else ''}[{name}]({link}?{time.time()})"
     else:
@@ -588,10 +587,7 @@ def server_html_link_get_str(
             # for images, we use standard alt text
             name = "image not found"
     # convert filepath to link on http server
-    link = s.replace(
-        "/icgc/dkfzlsdf/analysis/hs_ontogeny/",
-        "https://currywurst.dkfz.de/hs-ontogeny/",
-    )
+    link = mhpaths.get_currywurst_link(s)
     # add a query string to prevent browser caching
     if image:
 
