@@ -22,13 +22,8 @@ import plotnine as pn
 import matplotlib.pyplot as plt
 from IPython.display import Markdown, HTML
 
-import rpy2.robjects.lib.ggplot2 as gg
-import rpy2.rinterface as ri
 
 import mouse_hema_meth.paths as mhpaths
-
-AnyFigure = Union[mpl.figure.Figure, sns.FacetGrid, pn.ggplot, gg.GGPlot]
-
 
 def pdf(s):
     return s.replace(".png", ".pdf")
@@ -222,7 +217,7 @@ class HtmlReport:
         self.lines.append(df.to_html())
         self.lines.append("<br><br>")
 
-    def figure(self, fig: AnyFigure, do_display=False, **kwargs):
+    def figure(self, fig, do_display=False, **kwargs):
         """Add <img> with download links for png, pdf and svg
 
         This could be improved by exposing save_and_display args
@@ -377,19 +372,23 @@ def save_and_display(
             fig.save(pdf(png_path), **size_kwargs)
         if "svg" in additional_formats:
             fig.save(svg(png_path), **size_kwargs)
-    elif isinstance(fig, gg.GGPlot):
-        # noinspection PyUnresolvedReferences
-        size_kwargs = dict(
-            height=height if height else ri.NA_Logical,
-            width=width if width else ri.NA_Logical,
-            units="in",
-        )
-        fig.save(png_path, **size_kwargs)
-        if "pdf" in additional_formats:
-            fig.save(pdf(png_path), **size_kwargs)
-        # saving ggplot as svg seems buggy (Feb 2020)
-        # if 'svg' in additional_formats:
-        #     fig.save(svg(png_path), **size_kwargs)
+    else:
+        import rpy2.robjects.lib.ggplot2 as gg
+        import rpy2.rinterface as ri
+        if isinstance(fig, gg.GGPlot):
+
+            # noinspection PyUnresolvedReferences
+            size_kwargs = dict(
+                height=height if height else ri.NA_Logical,
+                width=width if width else ri.NA_Logical,
+                units="in",
+            )
+            fig.save(png_path, **size_kwargs)
+            if "pdf" in additional_formats:
+                fig.save(pdf(png_path), **size_kwargs)
+            # saving ggplot as svg seems buggy (Feb 2020)
+            # if 'svg' in additional_formats:
+            #     fig.save(svg(png_path), **size_kwargs)
 
     if output == "md":
         image_link = server_markdown_link_get_str(
