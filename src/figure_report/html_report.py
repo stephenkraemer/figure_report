@@ -25,6 +25,7 @@ from IPython.display import Markdown, HTML
 
 import mouse_hema_meth.paths as mhpaths
 
+
 def pdf(s):
     return s.replace(".png", ".pdf")
 
@@ -148,6 +149,7 @@ class HtmlReport:
         files_dir=None,
         toc_headings="h1, h2, h3, h4",
         autocollapse_depth=2,
+        link_fn=mhpaths.get_currywurst_link,
     ):
         """Iteratively build a html document and save or display
 
@@ -168,6 +170,10 @@ class HtmlReport:
         ----------
         toc_headings: eg 'h1, h2'; these headings will be collected into the toc
         autocollapse_depth: the toc will be collapsed to hide headings with a higher level than this, but can be expanded by clicking, or by scrolling into the corresponding document area
+        link_fn
+            default: currywurst link; alternatively any function taking a png_path
+            as single argument; or None. If None, relative links (to the report path)
+            are used
         """
         self.lines = []
         self.toc_headings = toc_headings
@@ -175,8 +181,21 @@ class HtmlReport:
         self.counter = incremental_counter()
         self.heading_counter = incremental_counter()
         self.report_path = report_path
+
+        # if link_fn is None, use a link function which creates links relative
+        # to the report path; this means of course that the report is not going
+        # to work anymore if it moved (without moving the linked images
+        # correspondingly)
+        def relative_link(fp):
+            return Path(fp).relative_to(Path(self.report_path).parent)
+
+        if link_fn is not None:
+            self.link_fn = link_fn
+        else:
+            self.link_fn = relative_link
+
         if files_dir is None:
-            files_dir = report_path.replace('.html', '_img')
+            files_dir = report_path.replace(".html", "_img")
         self.files_dir = files_dir
         # will be combined with counter to create unique paths
         self.png_base_path = files_dir + "/img.png"
@@ -232,8 +251,8 @@ class HtmlReport:
         """
         if "output" in kwargs or "counter" in kwargs or "trunk_path" in kwargs:
             raise ValueError()
-        if 'png_path' in kwargs:
-            png_path = kwargs.pop('png_path')
+        if "png_path" in kwargs:
+            png_path = kwargs.pop("png_path")
             counter = None
         else:
             png_path = self.png_base_path
@@ -245,13 +264,16 @@ class HtmlReport:
                 counter=counter,
                 do_display=do_display,
                 output="html",
+                link_fn=self.link_fn,
                 **kwargs,
             )
         )
 
-    def image(self, png_path: str, **kwargs):
+    def image(self, png_path: str, link_fn, **kwargs):
         self.lines.append(
-            display_file_html(png_path=png_path, do_display=False, **kwargs)
+            display_file_html(
+                png_path=png_path, do_display=False, link_fn=link_fn, **kwargs
+            )
         )
 
     def text(self, s):
@@ -295,6 +317,7 @@ def incremental_counter(start=0):
 
 def save_and_display(
     fig,
+    link_fn,
     png_path=None,
     trunk_path=None,
     additional_formats=("pdf", "svg"),
@@ -365,7 +388,6 @@ def save_and_display(
             fig.savefig(svg(png_path))
         plt.close()
     elif isinstance(fig, pn.ggplot):
-
         size_kwargs = dict(height=height, width=width, units="in")
         fig.save(png_path, **size_kwargs)
         if "pdf" in additional_formats:
@@ -375,8 +397,8 @@ def save_and_display(
     else:
         import rpy2.robjects.lib.ggplot2 as gg
         import rpy2.rinterface as ri
-        if isinstance(fig, gg.GGPlot):
 
+        if isinstance(fig, gg.GGPlot):
             # noinspection PyUnresolvedReferences
             size_kwargs = dict(
                 height=height if height else ri.NA_Logical,
@@ -437,15 +459,16 @@ def save_and_display(
             return md_text
     elif output == "html":
         return display_file_html(
-            png_path,
-            name,
-            layout,
-            heading_level,
-            show_image,
-            show_download_links,
-            do_display,
+            png_path=png_path,
+            name=name,
+            layout=layout,
+            heading_level=heading_level,
+            show_image=show_image,
+            show_download_links=show_download_links,
+            do_display=do_display,
             display_height=display_height,
             display_width=display_width,
+            link_fn=link_fn,
         )
     else:
         raise ValueError(f"Unknown output format {output}")
@@ -453,6 +476,7 @@ def save_and_display(
 
 def display_file_html(
     png_path,
+    link_fn,
     name=None,
     layout="vertical",
     heading_level=None,
@@ -488,11 +512,12 @@ def display_file_html(
         display_width=display_width,
         display_height=display_height,
         units=units,
+        link_fn=link_fn,
     )
     download_links = [
-        server_html_link_get_str(png_path),
-        server_html_link_get_str(pdf(png_path)),
-        server_html_link_get_str(svg(png_path)),
+        server_html_link_get_str(png_path, link_fn=link_fn),
+        server_html_link_get_str(pdf(png_path), link_fn=link_fn),
+        server_html_link_get_str(svg(png_path), link_fn=link_fn),
     ]
     elements = []  # lines or table columns
     if name is not None:
@@ -564,6 +589,7 @@ def server_markdown_link_get_str(
 
 def server_html_link_get_str(
     s: Union[Path, str],
+    link_fn,
     image=False,
     name=None,
     display_height=None,
@@ -586,10 +612,9 @@ def server_html_link_get_str(
             # for images, we use standard alt text
             name = "image not found"
     # convert filepath to link on http server
-    link = mhpaths.get_currywurst_link(s)
+    link = link_fn(s)
     # add a query string to prevent browser caching
     if image:
-
         # add a query string to prevent browser caching
         # control figure size:
         # - while <img width=100> works, <img height=100> is ignored by jupyterlab,
